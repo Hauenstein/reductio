@@ -5,9 +5,9 @@ Reductio is a library for generating Crossfilter reduce functions and applying t
 
 [![NPM version](http://img.shields.io/npm/v/reductio.svg?style=flat)](https://www.npmjs.org/package/reductio)
 [![Bower version](http://img.shields.io/bower/v/reductio.svg?style=flat)](http://bower.io/search/?q=reductio)
-[![Travis build status](http://img.shields.io/travis/esjewett/reductio/master.svg?style=flat)](https://travis-ci.org/esjewett/reductio)
-[![Code Climate](https://codeclimate.com/github/esjewett/reductio/badges/gpa.svg)](https://codeclimate.com/github/esjewett/reductio)
-[![Dependency Status](https://david-dm.org/esjewett/reductio.svg?style=flat)](https://david-dm.org/esjewett/reductio)
+[![Travis build status](http://img.shields.io/travis/Hauenstein/reductio/filter-dev.svg?style=flat)](https://travis-ci.org/Hauenstein/reductio)
+[![Code Climate](https://codeclimate.com/github/Hauenstein/reductio/badges/gpa.svg)](https://codeclimate.com/github/Hauenstein/reductio)
+[![Dependency Status](https://david-dm.org/Hauenstein/reductio.svg?style=flat)](https://david-dm.org/Hauenstein/reductio)
 
 * [Installation](#installation)
     * [NPM](#installation-npm)
@@ -27,6 +27,7 @@ Reductio is a library for generating Crossfilter reduce functions and applying t
             * [reductio.<b>histogramBins</b>(<i>thresholdArray</i>)](#aggregations-standard-aggregations-histogram-reductio-b-histogrambins-b-i-thresholdarray-i-)
             * [reductio.<b>histogramValue</b>(<i>value</i>)](#aggregations-standard-aggregations-histogram-reductio-b-histogramvalue-b-i-value-i-)
         * [reductio.<b>value</b>(<i>propertyName</i>)](#aggregations-standard-aggregations-reductio-b-value-b-i-propertyname-i-)
+        * [reductio.<b>filter</b>(<i>filterFn</i>)](#aggregations-standard-aggregations-reductio-b-filter-b-i-filterfn-i-)
         * [reductio.<b>nest</b>(<i>keyAccessorArray</i>)](#aggregations-standard-aggregations-reductio-b-nest-b-i-keyaccessorarray-i-)
         * [reductio.<b>alias</b>(<i>mapping</i>)](#aggregations-standard-aggregations-reductio-b-alias-b-i-mapping-i-)
         * [reductio.<b>aliasProp</b>(<i>mapping</i>)](#aggregations-standard-aggregations-reductio-b-aliasprop-b-i-mapping-i-)
@@ -188,6 +189,45 @@ Will result in groups that look like
   z: { sum: 2 }
 }}
 ```
+
+<h3 id="aggregations-standard-aggregations-reductio-b-filter-b-i-filterfn-i-">reductio.<b>filter</b>(<i>filterFn</i>)</h3>
+```javascript
+reductio().filter(filterFn)(group)
+```
+Filters values from being added/removed from groups.  Works well with ```value```
+chains, and is also very useful if you need to aggregate sparsely-populated fields.
+
+```javascript
+var reducer = reductio();
+reducer.value("evens").count(true)
+  .filter(function(d) { return d.bar % 2 === 0}; });
+reducer.value("rare")
+  .filter(function(d) { return typeof d.rareVal === 'undefined' ; })
+  .sum(function(d) return d.rareVal; );
+reducer(group);
+```
+
+For example:
+
+```javascript
+// Given:
+[
+  { foo: 'one', num: 1 },
+  { foo: 'two', num: 2 },
+  { foo: 'three', num: 3, rareVal: 98 },
+  { foo: 'one', num: 3, rareVal: 99 },
+  { foo: 'one', num: 4, rareVal: 100 },
+  { foo: 'two', num: 6 }
+]
+
+// The groups will look like:
+[
+  { key: 'one', value: { evens: { count: 1 }, rare: { sum: 199 } }
+  { key: 'two', value: { evens: { count: 2 }, rare: { sum: 98 } }
+  { key: 'three', value: { evens: { count: 0 }, rare: { sum: 0 } }
+]
+```
+
 
 <h3 id="aggregations-standard-aggregations-reductio-b-nest-b-i-keyaccessorarray-i-">reductio.<b>nest</b>(<i>keyAccessorArray</i>)</h3>
 ```javascript
